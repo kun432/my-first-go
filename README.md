@@ -220,4 +220,84 @@ $ hello
       reverse.go
 ```
 
-イブラリstringutilがオブジェクトファイルとして生成され、それを静的にインクルードした実行ファイルhelloができる。
+ライブラリstringutilがオブジェクトファイルとして生成され、それを静的にインクルードした実行ファイルhelloができる。
+
+### テスト
+
+```go test```コマンドとtestingパッケージを使う
+
+stringutilをTDDしてみる
+
+```
+$ vi $GOPATH/src/github.com/kun432/stringutil/reverse_test.go
+```
+
+```go:reverse_test.go
+package stringutil
+
+import "testing"
+
+func TestReverse(t *testing.T) {
+  cases := []struct {
+    in, want string
+  }{
+    {"Hello, World", "dlroW ,olleH"},
+    {"Hello, 世界", "界世 ,olleH"},
+    {"", ""},
+  }
+  for _, c := range cases {
+    got := Reverse(c.in)
+    if got != c.want {
+      t.Errorf("Reverse(%q) == %q, want %q", c.in, got, c.want)
+    }
+  }
+}
+```
+
+- func TestXXXX(t *testing.T) という関数を作る
+- 失敗したらt.Errorかt.Failが呼ばれる
+
+テストしてみる
+
+```
+$ go test github.com/kun432/stringutil
+ok      github.com/kun432/stringutil    0.007s
+```
+
+試しに間違えてみる
+
+```
+・・・
+  }{
+    {"Hello, World", "dlroW ,oolleH"},  //間違い
+    {"Hello, 世界", "界世 ,oolleH"},     //間違い
+    {"", ""},
+  }
+・・・
+```
+
+```
+$ go test github.com/kun432/stringutil
+--- FAIL: TestReverse (0.00s)
+        reverse_test.go:16: Reverse("Hello, World") == "dlroW ,olleH", want "dlroW ,oolleH"
+        reverse_test.go:16: Reverse("Hello, 世界") == "界世 ,olleH", want "界世 ,oolleH"
+FAIL
+FAIL    github.com/kun432/stringutil    0.006s
+```
+
+### リモートパッケージ
+
+レポジトリパスにURLが含まれる場合は自動的にURLから取得される
+go getを使う
+
+```
+$ go get github.com/golang/example/hello
+$ $GOPATH/bin/hello
+Hello, Go examples! 
+```
+
+依存するパッケージも自動的に取得される。上の例だとgithub.com/golang/example/stringutilも自動的に取得され、今後は以下のようにすればパッケージ単体でも使える
+
+```
+import "github.com/golang/example/stringutil"
+```
